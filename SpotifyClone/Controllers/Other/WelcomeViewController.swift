@@ -25,11 +25,15 @@ class WelcomeViewController: UIViewController {
         view.addSubview(signInButton)
         signInButton.addTarget(self, action: #selector(didTapSignIn), for: .touchUpInside)
     }
-    
     override func viewWillAppear(_ animated: Bool) {
-        print(navigationController?.navigationBar.standardAppearance)
+        if #available(iOS 15, *) {
+            let appearance = UINavigationBarAppearance()
+            appearance.backgroundColor = .green
+            appearance.shadowColor = .green
+            navigationController?.navigationBar.standardAppearance = appearance
+            navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        }
     }
-    
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         signInButton.frame = CGRect(x: 20, y: view.height - 50 - view.safeAreaInsets.bottom, width: view.width - 40, height: 50)

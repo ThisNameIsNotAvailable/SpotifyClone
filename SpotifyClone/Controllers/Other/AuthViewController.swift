@@ -28,6 +28,13 @@ class AuthViewController: UIViewController, WKNavigationDelegate {
         super.viewDidLoad()
         title = "Sign In"
         view.backgroundColor = .systemBackground
+        if #available(iOS 15, *) {
+            let appearance = UINavigationBarAppearance()
+            appearance.titleTextAttributes = [
+                .foregroundColor : UIColor.label]
+            navigationController?.navigationBar.standardAppearance = appearance
+            navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        }
         webView.navigationDelegate = self
         view.addSubview(webView)
         guard let url = AuthManager.shared.signInURL else {
