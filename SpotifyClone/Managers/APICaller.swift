@@ -25,11 +25,31 @@ final class APICaller {
         case POST
     }
     
+    //MARK: - Albums
+    
+    public func getAlbumDetails(for album: Album, completion: @escaping  (Result<AlbumDetailsResponse, Error>) -> Void) {
+        createRequest(with: URL(string: Constants.baseAPIURL + "/albums/" + album.id), type: .GET) { [weak self] request in
+            self?.performRequest(with: request, of: AlbumDetailsResponse.self, completion: completion)
+        }
+    }
+    
+    //MARK: - Playlists
+    
+    public func getPlaylistDetails(for playlist: Playlist, completion: @escaping  (Result<PlaylistDetailsResponse, Error>) -> Void) {
+        createRequest(with: URL(string: Constants.baseAPIURL + "/playlists/" + playlist.id), type: .GET) { [weak self] request in
+            self?.performRequest(with: request, of: PlaylistDetailsResponse.self, completion: completion)
+        }
+    }
+    
+    //MARK: - Profile
+    
     public func getCurrentUserProfile(completion: @escaping (Result<UserProfile, Error>) -> Void) {
         createRequest(with: URL(string: Constants.baseAPIURL + "/me"), type: .GET) { [weak self] request in
             self?.performRequest(with: request, of: UserProfile.self, completion: completion)
         }
     }
+    
+    //MARK: - Browse
     
     public func getNewReleases(completion: @escaping (Result<NewReleasesResponse, Error>) -> Void) {
         createRequest(with: URL(string: Constants.baseAPIURL + "/browse/new-releases?limit=20"), type: .GET) { [weak self] request in
@@ -56,6 +76,7 @@ final class APICaller {
         }
     }
     
+    //MARK: - Helper functions
     private func createRequest(with url: URL?, type: HTTPMethod, completion: @escaping (URLRequest) -> Void) {
         AuthManager.shared.withValidToken { token in
             guard let apiURL = url else {
@@ -73,7 +94,7 @@ final class APICaller {
         URLSession.shared.dataTask(with: request) { data, _, error in
             guard let data = data, error == nil else {
                 completion(.failure(APIError.failedToGetData))
-                
+                print(error)
                 return
             }
             do {
@@ -81,6 +102,7 @@ final class APICaller {
                 completion(.success(result))
             } catch {
                 completion(.failure(error))
+                print(error)
             }
         }.resume()
     }
