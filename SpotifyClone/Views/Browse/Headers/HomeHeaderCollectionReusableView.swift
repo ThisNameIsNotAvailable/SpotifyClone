@@ -7,19 +7,21 @@
 
 import UIKit
 
-final class HeaderCollectionReusableView: UICollectionReusableView {
-    static let identifier = "HeaderCollectionReusableView"
+final class HomeHeaderCollectionReusableView: UICollectionReusableView {
+    static let identifier = "HomeHeaderCollectionReusableView"
     
     private let headerLabel: UILabel = {
         let label = UILabel()
+        label.textColor = .label
+        label.numberOfLines = 1
         label.font = .systemFont(ofSize: 26, weight: .bold)
         return label
     }()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        backgroundColor = .systemBackground
         addSubview(headerLabel)
-        layer.cornerRadius = 6
     }
     
     required init?(coder: NSCoder) {
@@ -28,7 +30,7 @@ final class HeaderCollectionReusableView: UICollectionReusableView {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        headerLabel.frame = CGRect(x: 5, y: 0, width: width - 5, height: height)
+        headerLabel.frame = CGRect(x: 15, y: 0, width: width - 30, height: height)
     }
     
     func configure(with title: String) {

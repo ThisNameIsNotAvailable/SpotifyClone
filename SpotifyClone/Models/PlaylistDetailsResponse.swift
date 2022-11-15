@@ -21,5 +21,5 @@ struct PlaylistTracksResponse: Codable {
 }
 
 struct PlaylistItem: Codable {
-    let track: AudioTrack
+    let track: AudioTrack?
 }

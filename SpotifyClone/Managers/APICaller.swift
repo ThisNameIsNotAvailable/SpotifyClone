@@ -25,6 +25,20 @@ final class APICaller {
         case POST
     }
     
+    //MARK: - Category
+    
+    public func getAllCategories(completion: @escaping (Result<AllCategoriesResponse, Error>) -> Void) {
+        createRequest(with: URL(string: Constants.baseAPIURL + "/browse/categories?limit=30"), type: .GET) { [weak self] request in
+            self?.performRequest(with: request, of: AllCategoriesResponse.self, completion: completion)
+        }
+    }
+    
+    public func getCategoryPlaylist(category: Category, completion: @escaping (Result<FeaturedPlaylistsResponse, Error>) -> Void) {
+        createRequest(with: URL(string: Constants.baseAPIURL + "/browse/categories/\(category.id)/playlists?limit=30"), type: .GET) { [weak self] request in
+            self?.performRequest(with: request, of: FeaturedPlaylistsResponse.self, completion: completion)
+        }
+    }
+    
     //MARK: - Albums
     
     public func getAlbumDetails(for album: Album, completion: @escaping  (Result<AlbumDetailsResponse, Error>) -> Void) {
@@ -76,6 +90,42 @@ final class APICaller {
         }
     }
     
+    //MARK: - Search
+    
+    public func search(with query: String, completion: @escaping (Result<[SearchResult], Error>) -> Void) {
+        createRequest(with: URL(string: Constants.baseAPIURL + "/search?limit=5&type=album,artist,playlist,track&q=\(query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"), type: .GET) { [weak self] request in
+            URLSession.shared.dataTask(with: request) { data, _, error in
+                guard let data = data, error == nil else {
+                    completion(.failure(APIError.failedToGetData))
+                    print(error?.localizedDescription ?? "error")
+                    return
+                }
+                do {
+                    let result = try JSONDecoder().decode(SearchResultsResponse.self, from: data)
+                    
+                    var searchResults = [SearchResult]()
+                    searchResults.append(contentsOf: result.tracks.items.compactMap { track in
+                        return SearchResult.track(model: track)
+                    })
+                    searchResults.append(contentsOf: result.albums.items.compactMap { album in
+                        return SearchResult.album(model: album)
+                    })
+                    searchResults.append(contentsOf: result.artists.items.compactMap { artist in
+                        return SearchResult.artist(model: artist)
+                    })
+                    searchResults.append(contentsOf: result.playlists.items.compactMap { playlist in
+                        return SearchResult.playlist(model: playlist)
+                    })
+                    
+                    completion(.success(searchResults))
+                } catch {
+                    completion(.failure(error))
+                    print(error)
+                }
+            }.resume()
+        }
+    }
+    
     //MARK: - Helper functions
     private func createRequest(with url: URL?, type: HTTPMethod, completion: @escaping (URLRequest) -> Void) {
         AuthManager.shared.withValidToken { token in
@@ -94,7 +144,7 @@ final class APICaller {
         URLSession.shared.dataTask(with: request) { data, _, error in
             guard let data = data, error == nil else {
                 completion(.failure(APIError.failedToGetData))
-                print(error)
+                print(error?.localizedDescription ?? "error")
                 return
             }
             do {

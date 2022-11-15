@@ -12,12 +12,10 @@ class RecommendedTrackCollectionViewCell: UICollectionViewCell {
     
     private let albumCoverImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "photo")
+        imageView.image = UIImage(systemName: "photo.circle")
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 6
-        imageView.layer.borderWidth = 1
-        imageView.layer.borderColor = UIColor.lightGray.cgColor
         imageView.tintColor = .label
         return imageView
     }()
@@ -67,6 +65,6 @@ class RecommendedTrackCollectionViewCell: UICollectionViewCell {
     public func configure(with viewModel: RecommendedTrackCellViewModel) {
         trackNameLabel.text = viewModel.name
         artistNameLabel.text = viewModel.artistName
-        albumCoverImageView.sd_setImage(with: viewModel.artworkURL)
+        albumCoverImageView.sd_setImage(with: viewModel.artworkURL, placeholderImage: UIImage(systemName: "photo.circle"))
     }
 }
