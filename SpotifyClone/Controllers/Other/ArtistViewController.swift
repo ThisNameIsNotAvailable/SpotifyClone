@@ -53,6 +53,7 @@ class ArtistViewController: UIViewController {
             let section = NSCollectionLayoutSection(group: horizontalGroup)
             section.boundarySupplementaryItems = [header]
             section.orthogonalScrollingBehavior = .continuous
+            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 10, trailing: 0)
             return section
         case 2:
             let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .absolute(200), heightDimension: .absolute(200)))
@@ -63,6 +64,7 @@ class ArtistViewController: UIViewController {
             let section = NSCollectionLayoutSection(group: group)
             section.boundarySupplementaryItems = [header]
             section.orthogonalScrollingBehavior = .continuous
+            section.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 5, trailing: 0)
             return section
         default:
             let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1)))
@@ -88,10 +90,6 @@ class ArtistViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        self.navigationController?.navigationBar.subviews.first?.alpha = 1
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.addSubview(collectionView)
@@ -110,25 +108,22 @@ class ArtistViewController: UIViewController {
         self.navigationController?.navigationBar.subviews.first?.alpha = 0
     }
     
-    override func viewDidAppear(_ animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         guard let navigationController = self.navigationController else { return }
-        if !isSet {
-            isSet = true
-            offset = collectionView.contentOffset.y
-        }
-        
-        let threshold: CGFloat = view.width - 40 // distance from bar where fade-in begins
-        if (collectionView.contentOffset.y - offset) / threshold > 0.7 {
-            let alpha = ((collectionView.contentOffset.y - offset) / threshold - 0.7)*3.3
-            navigationController.navigationBar.subviews.first?.alpha = alpha
-            navigationController.navigationBar.titleTextAttributes = [
-                .foregroundColor: UIColor.label.withAlphaComponent(alpha)
-            ]
-        }else {
-            navigationController.navigationBar.subviews.first?.alpha = 0
-            navigationController.navigationBar.titleTextAttributes = [
-                .foregroundColor: UIColor.label.withAlphaComponent(0)
-            ]
+        if isSet {
+            let threshold: CGFloat = view.width - 40 // distance from bar where fade-in begins
+            if (collectionView.contentOffset.y - offset) / threshold > 0.7 {
+                let alpha = ((collectionView.contentOffset.y - offset) / threshold - 0.7)*3.3
+                navigationController.navigationBar.subviews.first?.alpha = alpha
+                navigationController.navigationBar.titleTextAttributes = [
+                    .foregroundColor: UIColor.label.withAlphaComponent(alpha)
+                ]
+            }else {
+                navigationController.navigationBar.subviews.first?.alpha = 0
+                navigationController.navigationBar.titleTextAttributes = [
+                    .foregroundColor: UIColor.label.withAlphaComponent(0)
+                ]
+            }
         }
     }
     
@@ -195,7 +190,6 @@ class ArtistViewController: UIViewController {
         self.artists = artists
         self.tracks = tracks
         self.albums = albums
-        
         sections.append(ArtistSectionType.albums(albums: albums.compactMap({ album in
             return FeaturedPlaylistCellViewModel(name: album.name, artworkURL: URL(string: album.images.first?.url ?? ""), creatorName: album.artists.first?.name ?? "-")
         })))
@@ -209,6 +203,7 @@ class ArtistViewController: UIViewController {
         collectionView.reloadData()
     }
     var isSet: Bool = false
+    var isScrolled = false
 }
 
 extension ArtistViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UIScrollViewDelegate {
@@ -223,6 +218,11 @@ extension ArtistViewController: UICollectionViewDelegate, UICollectionViewDataSo
         let threshold: CGFloat = view.width - 40 // distance from bar where fade-in begins
         if (collectionView.contentOffset.y - offset) / threshold > 0.7 {
             let alpha = ((collectionView.contentOffset.y - offset) / threshold - 0.7)*3.3
+            if alpha > 0.3 && !isScrolled {
+                isScrolled = true
+            } else if alpha < 0.3 {
+                isScrolled = false
+            }
             navigationController.navigationBar.subviews.first?.alpha = alpha
             navigationController.navigationBar.titleTextAttributes = [
                 .foregroundColor: UIColor.label.withAlphaComponent(alpha)

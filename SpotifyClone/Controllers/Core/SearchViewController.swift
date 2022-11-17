@@ -26,6 +26,7 @@ class SearchViewController: UIViewController, UISearchResultsUpdating, UISearchB
     }))
     
     private var categories = [Category]()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
@@ -50,6 +51,13 @@ class SearchViewController: UIViewController, UISearchResultsUpdating, UISearchB
             }
         }
         collectionView.delaysContentTouches = false
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        self.navigationController?.navigationBar.subviews.first?.alpha = 1
+        navigationController?.navigationBar.titleTextAttributes = [
+            .foregroundColor: UIColor.label.withAlphaComponent(1)
+        ]
     }
     
     override func viewDidLayoutSubviews() {
@@ -128,6 +136,9 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
 
 extension SearchViewController: SearchResultsViewControllerDelegate {
     func didTapResult(_ result: SearchResult) {
+        searchController.searchBar.resignFirstResponder()
+        searchController.searchBar.text = ""
+        
         switch result {
         case .artist(let model):
             let vc = ArtistViewController(artist: model)
@@ -144,5 +155,6 @@ extension SearchViewController: SearchResultsViewControllerDelegate {
         case .track(let model):
             break
         }
+        searchController.isActive = false
     }
 }

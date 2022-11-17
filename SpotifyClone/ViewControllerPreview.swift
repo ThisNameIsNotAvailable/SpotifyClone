@@ -35,7 +35,7 @@ struct InfoVCPreview: PreviewProvider {
     
     static var previews: some View {
         // view controller using programmatic UI
-        TabBarViewController().toPreview()
+        WelcomeViewController().toPreview()
     }
 }
 #endif

@@ -38,10 +38,22 @@ class CustomCompositionalLayout: UICollectionViewCompositionalLayout {
                     return
                 }
                 let start = collectionView.width - header.headerLabel.height
-                if 1 - (contentOffsetY - offset) / start < 0.3 {
-                    header.imageView.alpha = 3.3*(1 - (contentOffsetY - offset) / start)
-                    header.label.alpha = 2*(1 - (contentOffsetY - offset) / start)
-                    header.followersLabel.alpha = 2*(1 - (contentOffsetY - offset) / start)
+                let alpha = 1 - (contentOffsetY - offset) / start
+                if alpha < 0.5 {
+                    header.imageView.alpha = 2*alpha
+                    switch alpha {
+                    case 0.3...0.4:
+                        header.label.alpha = 2*alpha
+                        header.followersLabel.alpha = 2*alpha
+                    case 0.15...0.3:
+                        header.label.alpha = 1.6*alpha
+                        header.followersLabel.alpha = 1.6*alpha
+                    case 0...0.15:
+                        header.label.alpha = 1.2*alpha
+                        header.followersLabel.alpha = 1.2*alpha
+                    default:
+                        break
+                    }
                     header.headerLabel.alpha = 1
                 }else {
                     header.label.alpha = 1

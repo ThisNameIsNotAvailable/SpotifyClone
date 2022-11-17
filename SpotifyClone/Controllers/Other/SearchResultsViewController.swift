@@ -93,9 +93,6 @@ class SearchResultsViewController: UIViewController, UITableViewDelegate, UITabl
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let result = sections[indexPath.section].results[indexPath.row]
-        guard let Acell = tableView.dequeueReusableCell(withIdentifier: SearchResultSubtitleTableViewCell.identifier, for: indexPath) as? SearchResultSubtitleTableViewCell else {
-            return UITableViewCell()
-        }
         
         switch result {
         case .artist(let artist):
@@ -141,5 +138,7 @@ class SearchResultsViewController: UIViewController, UITableViewDelegate, UITabl
         tableView.deselectRow(at: indexPath, animated: true)
         let result = sections[indexPath.section].results[indexPath.row]
         delegate?.didTapResult(result)
+        tableView.isHidden = true
+        self.sections.removeAll()
     }
 }

@@ -22,6 +22,7 @@ class ArtistCollectionViewCell: UICollectionViewCell {
         let label = UILabel()
         label.textColor = .secondaryLabel
         label.textAlignment = .center
+        label.font = .systemFont(ofSize: 20)
         return label
     }()
     
@@ -44,9 +45,9 @@ class ArtistCollectionViewCell: UICollectionViewCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        imageView.frame = CGRect(x: 0, y: 0, width: contentView.width, height: contentView.width)
+        imageView.frame = CGRect(x: 0, y: 0, width: contentView.width - 10, height: contentView.width - 10)
         imageView.layer.cornerRadius = imageView.width / 2
-        label.frame = CGRect(x: 0, y: imageView.bottom, width: contentView.width, height: contentView.height - imageView.height - 10)
+        label.frame = CGRect(x: 0, y: imageView.bottom + 10, width: contentView.width, height: contentView.height - imageView.height - 10)
     }
     
     func configure(with model: ArtistCollectionViewModel) {
