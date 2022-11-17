@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct NewReleasesCellViewModel {
+struct AlbumCellViewModel {
     let name: String
     let artworkURL: URL?
     let numberOfTracks: Int

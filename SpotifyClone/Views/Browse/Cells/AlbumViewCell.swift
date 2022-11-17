@@ -8,8 +8,8 @@
 import UIKit
 import SDWebImage
 
-class NewReleaseCollectionViewCell: UICollectionViewCell {
-    static let identifier = "NewReleaseCollectionViewCell"
+class AlbumViewCell: UICollectionViewCell {
+    static let identifier = "AlbumViewCell"
     
     private let albumCoverImageView: UIImageView = {
         let imageView = UIImageView()
@@ -83,7 +83,7 @@ class NewReleaseCollectionViewCell: UICollectionViewCell {
         albumCoverImageView.image = nil
     }
     
-    public func configure(with viewModel: NewReleasesCellViewModel) {
+    public func configure(with viewModel: AlbumCellViewModel) {
         albumNameLabel.text = viewModel.name
         artistNameLabel.text = viewModel.artistName
         numberOfTracksLabel.text = "Tracks: \(viewModel.numberOfTracks)"

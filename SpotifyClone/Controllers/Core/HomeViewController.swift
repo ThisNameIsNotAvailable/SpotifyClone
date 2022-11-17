@@ -8,7 +8,7 @@
 import UIKit
 
 enum BrowseSectionType {
-    case newReleases(viewModels: [NewReleasesCellViewModel])
+    case newReleases(viewModels: [AlbumCellViewModel])
     case featuredPlaylists(viewModels: [FeaturedPlaylistCellViewModel])
     case recommendedTracks(viewModels: [RecommendedTrackCellViewModel])
     
@@ -57,7 +57,7 @@ class HomeViewController: UIViewController {
     
     private func configureCollectionView() {
         view.addSubview(collectionView)
-        collectionView.register(NewReleaseCollectionViewCell.self, forCellWithReuseIdentifier: NewReleaseCollectionViewCell.identifier)
+        collectionView.register(AlbumViewCell.self, forCellWithReuseIdentifier: AlbumViewCell.identifier)
         collectionView.register(FeaturedPlaylistCollectionViewCell.self, forCellWithReuseIdentifier: FeaturedPlaylistCollectionViewCell.identifier)
         collectionView.register(RecommendedTrackCollectionViewCell.self, forCellWithReuseIdentifier: RecommendedTrackCollectionViewCell.identifier)
         collectionView.register(HomeHeaderCollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: HomeHeaderCollectionReusableView.identifier)
@@ -140,7 +140,7 @@ class HomeViewController: UIViewController {
         self.playlists = playlists
         self.tracks = tracks
         sections.append(.newReleases(viewModels: newAlbums.compactMap({ album in
-            return NewReleasesCellViewModel(name: album.name, artworkURL: URL(string: album.images.first?.url ?? ""), numberOfTracks: album.total_tracks, artistName: album.artists.first?.name ?? "-")
+            return AlbumCellViewModel(name: album.name, artworkURL: URL(string: album.images.first?.url ?? ""), numberOfTracks: album.total_tracks, artistName: album.artists.first?.name ?? "-")
         })))
         sections.append(.featuredPlaylists(viewModels: playlists.compactMap({ playlist in
             return FeaturedPlaylistCellViewModel(name: playlist.name, artworkURL: URL(string: playlist.images.first?.url ?? ""), creatorName: playlist.owner.display_name)
@@ -234,7 +234,7 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
         let type = sections[indexPath.section]
         switch type {
         case .newReleases(let viewModels):
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: NewReleaseCollectionViewCell.identifier, for: indexPath) as? NewReleaseCollectionViewCell else {
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AlbumViewCell.identifier, for: indexPath) as? AlbumViewCell else {
                 return UICollectionViewCell()
             }
             let viewModel = viewModels[indexPath.row]

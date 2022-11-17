@@ -25,6 +25,26 @@ final class APICaller {
         case POST
     }
     
+    //MARK: - Artist
+    
+    public func getAlbums(of artist: Artist, completion: @escaping (Result<AlbumsResponse, Error>) -> Void) {
+        createRequest(with: URL(string: Constants.baseAPIURL + "/artists/\(artist.id)/albums?include_groups=album&limit=10"), type: .GET) { [weak self] request in
+            self?.performRequest(with: request, of: AlbumsResponse.self, completion: completion)
+        }
+    }
+    
+    public func getPopularTracks(of artist: Artist, completion: @escaping (Result<RecommendationsResponse, Error>) -> Void) {
+        createRequest(with: URL(string: Constants.baseAPIURL + "/artists/\(artist.id)/top-tracks?market=US"), type: .GET) { [weak self] request in
+            self?.performRequest(with: request, of: RecommendationsResponse.self, completion: completion)
+        }
+    }
+    
+    public func getRelatedArtists(to artist: Artist, completion: @escaping (Result<RelatedArtistsResponse, Error>) -> Void) {
+        createRequest(with: URL(string: Constants.baseAPIURL + "/artists/\(artist.id)/related-artists"), type: .GET) { [weak self] request in
+            self?.performRequest(with: request, of: RelatedArtistsResponse.self, completion: completion)
+        }
+    }
+    
     //MARK: - Category
     
     public func getAllCategories(completion: @escaping (Result<AllCategoriesResponse, Error>) -> Void) {
@@ -93,7 +113,7 @@ final class APICaller {
     //MARK: - Search
     
     public func search(with query: String, completion: @escaping (Result<[SearchResult], Error>) -> Void) {
-        createRequest(with: URL(string: Constants.baseAPIURL + "/search?limit=5&type=album,artist,playlist,track&q=\(query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"), type: .GET) { [weak self] request in
+        createRequest(with: URL(string: Constants.baseAPIURL + "/search?limit=5&type=album,artist,playlist,track&q=\(query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"), type: .GET) { request in
             URLSession.shared.dataTask(with: request) { data, _, error in
                 guard let data = data, error == nil else {
                     completion(.failure(APIError.failedToGetData))

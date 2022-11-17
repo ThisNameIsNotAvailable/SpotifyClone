@@ -11,6 +11,10 @@ class SearchViewController: UIViewController, UISearchResultsUpdating, UISearchB
 
     private let searchController: UISearchController = {
         let vc = UISearchController(searchResultsController: SearchResultsViewController())
+        guard let searchController = vc.searchResultsController as? SearchResultsViewController else {
+            return vc
+        }
+        searchController.y = vc.searchBar.bottom
         vc.searchBar.placeholder = "Songs, Artists, Albums"
         vc.searchBar.searchBarStyle = .minimal
         vc.definesPresentationContext = true
@@ -130,7 +134,9 @@ extension SearchViewController: SearchResultsViewControllerDelegate {
     func didTapResult(_ result: SearchResult) {
         switch result {
         case .artist(let model):
-            break
+            let vc = ArtistViewController(artist: model)
+            vc.navigationItem.largeTitleDisplayMode = .never
+            navigationController?.pushViewController(vc, animated: true)
         case .album(let model):
             let vc = AlbumViewController(album: model)
             vc.navigationItem.largeTitleDisplayMode = .never
