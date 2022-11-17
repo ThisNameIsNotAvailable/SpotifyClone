@@ -28,6 +28,7 @@ class CustomCompositionalLayout: UICollectionViewCompositionalLayout {
                     isSet = true
                     offset = contentOffsetY
                 }
+                
                 if contentOffsetY < 0 {
                     let width = collectionView.frame.width
                     let height = attribute.frame.width - contentOffsetY
@@ -36,12 +37,16 @@ class CustomCompositionalLayout: UICollectionViewCompositionalLayout {
                 guard let header = collectionView.supplementaryView(forElementKind: UICollectionView.elementKindSectionHeader, at: attribute.indexPath) as? StretchyCollectionHeaderView else {
                     return
                 }
-                if 1 - (contentOffsetY - offset) / collectionView.width < 0.4 {
-                    attribute.alpha = 2.5*(1 - (contentOffsetY - offset) / collectionView.width)
-                    header.label.alpha = 3*(1 - (contentOffsetY - offset) / collectionView.width)
+                let start = collectionView.width - header.headerLabel.height
+                if 1 - (contentOffsetY - offset) / start < 0.3 {
+                    header.imageView.alpha = 3.3*(1 - (contentOffsetY - offset) / start)
+                    header.label.alpha = 2*(1 - (contentOffsetY - offset) / start)
+                    header.followersLabel.alpha = 2*(1 - (contentOffsetY - offset) / start)
+                    header.headerLabel.alpha = 1
                 }else {
-                    attribute.alpha = 1
                     header.label.alpha = 1
+                    header.followersLabel.alpha = 1
+                    header.imageView.alpha = 1
                 }
             }
         }

@@ -10,7 +10,7 @@ import UIKit
 enum ArtistSectionType {
     case albums(albums: [FeaturedPlaylistCellViewModel])
     case popularTracks(tracks: [RecommendedTrackCellViewModel])
-    case relatedArtists(artists: [Artist])
+    case relatedArtists(artists: [ArtistCollectionViewModel])
     
     var title: String {
         switch self {
@@ -19,7 +19,7 @@ enum ArtistSectionType {
         case .popularTracks:
             return "Popular Tracks"
         case .relatedArtists:
-            return "related Artists"
+            return "Related Artists"
         }
     }
 }
@@ -54,7 +54,16 @@ class ArtistViewController: UIViewController {
             section.boundarySupplementaryItems = [header]
             section.orthogonalScrollingBehavior = .continuous
             return section
-//        case 2:
+        case 2:
+            let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .absolute(200), heightDimension: .absolute(200)))
+            item.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 5, bottom: 5, trailing: 5)
+            let group = NSCollectionLayoutGroup.horizontal(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.45), heightDimension: .absolute(200)), subitem: item, count: 1)
+            let header = NSCollectionLayoutBoundarySupplementaryItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(40)), elementKind: UICollectionView.elementKindSectionHeader, alignment: .top)
+            header.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 1, bottom: 0, trailing: 0)
+            let section = NSCollectionLayoutSection(group: group)
+            section.boundarySupplementaryItems = [header]
+            section.orthogonalScrollingBehavior = .continuous
+            return section
         default:
             let item = NSCollectionLayoutItem(layoutSize: NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1)))
             item.contentInsets = NSDirectionalEdgeInsets(top: 5, leading: 5, bottom: 5, trailing: 5)
@@ -79,11 +88,16 @@ class ArtistViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        self.navigationController?.navigationBar.subviews.first?.alpha = 1
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.addSubview(collectionView)
         view.backgroundColor = .systemBackground
         collectionView.register(FeaturedPlaylistCollectionViewCell.self, forCellWithReuseIdentifier: FeaturedPlaylistCollectionViewCell.identifier)
+        collectionView.register(ArtistCollectionViewCell.self, forCellWithReuseIdentifier: ArtistCollectionViewCell.identifier)
         collectionView.register(RecommendedTrackCollectionViewCell.self, forCellWithReuseIdentifier: RecommendedTrackCollectionViewCell.identifier)
         collectionView.register(HomeHeaderCollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: HomeHeaderCollectionReusableView.identifier)
         collectionView.register(StretchyCollectionHeaderView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: StretchyCollectionHeaderView.identifier)
@@ -94,6 +108,28 @@ class ArtistViewController: UIViewController {
         fetchData()
         collectionView.delaysContentTouches = false
         self.navigationController?.navigationBar.subviews.first?.alpha = 0
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        guard let navigationController = self.navigationController else { return }
+        if !isSet {
+            isSet = true
+            offset = collectionView.contentOffset.y
+        }
+        
+        let threshold: CGFloat = view.width - 40 // distance from bar where fade-in begins
+        if (collectionView.contentOffset.y - offset) / threshold > 0.7 {
+            let alpha = ((collectionView.contentOffset.y - offset) / threshold - 0.7)*3.3
+            navigationController.navigationBar.subviews.first?.alpha = alpha
+            navigationController.navigationBar.titleTextAttributes = [
+                .foregroundColor: UIColor.label.withAlphaComponent(alpha)
+            ]
+        }else {
+            navigationController.navigationBar.subviews.first?.alpha = 0
+            navigationController.navigationBar.titleTextAttributes = [
+                .foregroundColor: UIColor.label.withAlphaComponent(0)
+            ]
+        }
     }
     
     private func fetchData() {
@@ -166,7 +202,9 @@ class ArtistViewController: UIViewController {
         sections.append(ArtistSectionType.popularTracks(tracks: tracks.compactMap({ track in
             return RecommendedTrackCellViewModel(name: track.name, artistName: track.artists.first?.name ?? "-", artworkURL: URL(string: track.album?.images.first?.url ?? ""))
         })))
-//        sections.append(ArtistSectionType.relatedArtists(artists: artists))
+        sections.append(ArtistSectionType.relatedArtists(artists: artists.compactMap({
+            return ArtistCollectionViewModel(name: $0.name, artworkURL: URL(string: $0.images?.first?.url ?? ""))
+        })))
         
         collectionView.reloadData()
     }
@@ -181,9 +219,10 @@ extension ArtistViewController: UICollectionViewDelegate, UICollectionViewDataSo
             isSet = true
             offset = collectionView.contentOffset.y
         }
-        let threshold: CGFloat = view.width // distance from bar where fade-in begins
-        if (collectionView.contentOffset.y - offset) / threshold > 0.6 {
-            let alpha = ((collectionView.contentOffset.y - offset) / threshold - 0.6)*2.5
+        
+        let threshold: CGFloat = view.width - 40 // distance from bar where fade-in begins
+        if (collectionView.contentOffset.y - offset) / threshold > 0.7 {
+            let alpha = ((collectionView.contentOffset.y - offset) / threshold - 0.7)*3.3
             navigationController.navigationBar.subviews.first?.alpha = alpha
             navigationController.navigationBar.titleTextAttributes = [
                 .foregroundColor: UIColor.label.withAlphaComponent(alpha)
@@ -221,8 +260,12 @@ extension ArtistViewController: UICollectionViewDelegate, UICollectionViewDataSo
             }
             cell.configure(with: tracks[indexPath.row])
             return cell
-        default:
-            return UICollectionViewCell()
+        case .relatedArtists(let artists):
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ArtistCollectionViewCell.identifier, for: indexPath) as? ArtistCollectionViewCell else {
+                return UICollectionViewCell()
+            }
+            cell.configure(with: artists[indexPath.row])
+            return cell
         }
     }
     
@@ -238,23 +281,29 @@ extension ArtistViewController: UICollectionViewDelegate, UICollectionViewDataSo
             let vc = AlbumViewController(album: albums[indexPath.row])
             vc.navigationItem.largeTitleDisplayMode = .never
             navigationController?.pushViewController(vc, animated: true)
+        case .relatedArtists:
+            let vc = ArtistViewController(artist: artists[indexPath.row])
+            vc.navigationItem.largeTitleDisplayMode = .never
+            navigationController?.pushViewController(vc, animated: true)
         default:
             break
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, didHighlightItemAt indexPath: IndexPath) {
-        UIView.animate(withDuration: 0.3) {
+        UIView.animate(withDuration: 0.2, delay: 0, options: .beginFromCurrentState) {
             guard let cell = collectionView.cellForItem(at: indexPath) else {
                 return
             }
-            cell.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+            if !(cell is ArtistCollectionViewCell) {
+                cell.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+            }
             cell.alpha = 0.7
         }
     }
     
     func collectionView(_ collectionView: UICollectionView, didUnhighlightItemAt indexPath: IndexPath) {
-        UIView.animate(withDuration: 0.3) {
+        UIView.animate(withDuration: 0.2, delay: 0, options: .beginFromCurrentState) {
             guard let cell = collectionView.cellForItem(at: indexPath) else {
                 return
             }
@@ -273,9 +322,9 @@ extension ArtistViewController: UICollectionViewDelegate, UICollectionViewDataSo
             guard let header = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: StretchyCollectionHeaderView.identifier, for: indexPath) as? StretchyCollectionHeaderView else {
                 return UICollectionReusableView()
             }
-            header.configure(with: StretchyCollectionHeaderViewModel(artistName: artist.name, imageURL: URL(string: artist.images?.first?.url ?? "")))
+            header.configure(with: StretchyCollectionHeaderViewModel(artistName: artist.name, followers: artist.followers?.total, imageURL: URL(string: artist.images?.first?.url ?? ""), title: sections[indexPath.section].title))
             return header
-        case 1:
+        case 1...2:
             guard let header = collectionView.dequeueReusableSupplementaryView(ofKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: HomeHeaderCollectionReusableView.identifier, for: indexPath) as? HomeHeaderCollectionReusableView else {
                 return UICollectionReusableView()
             }

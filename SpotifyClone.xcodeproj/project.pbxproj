@@ -66,6 +66,9 @@
 		3AF5637029259EC100D99A6F /* CustomCompositionalLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF5636F29259EC100D99A6F /* CustomCompositionalLayout.swift */; };
 		3AF5637229259F3600D99A6F /* StretchyCollectionHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF5637129259F3600D99A6F /* StretchyCollectionHeaderView.swift */; };
 		3AF5637429259FE700D99A6F /* StretchyCollectionHeaderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF5637329259FE700D99A6F /* StretchyCollectionHeaderViewModel.swift */; };
+		3AF563762926725C00D99A6F /* ArtistCollectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF563752926725C00D99A6F /* ArtistCollectionViewModel.swift */; };
+		3AF563782926734600D99A6F /* ArtistCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF563772926734600D99A6F /* ArtistCollectionViewCell.swift */; };
+		3AF5637B292697A100D99A6F /* ViewControllerPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AF5637A292697A100D99A6F /* ViewControllerPreview.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -129,6 +132,9 @@
 		3AF5636F29259EC100D99A6F /* CustomCompositionalLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCompositionalLayout.swift; sourceTree = "<group>"; };
 		3AF5637129259F3600D99A6F /* StretchyCollectionHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StretchyCollectionHeaderView.swift; sourceTree = "<group>"; };
 		3AF5637329259FE700D99A6F /* StretchyCollectionHeaderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StretchyCollectionHeaderViewModel.swift; sourceTree = "<group>"; };
+		3AF563752926725C00D99A6F /* ArtistCollectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistCollectionViewModel.swift; sourceTree = "<group>"; };
+		3AF563772926734600D99A6F /* ArtistCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistCollectionViewCell.swift; sourceTree = "<group>"; };
+		3AF5637A292697A100D99A6F /* ViewControllerPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewControllerPreview.swift; sourceTree = "<group>"; };
 		4469C39F5BA7DD4F0402FDE1 /* Pods-SpotifyClone.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SpotifyClone.release.xcconfig"; path = "Target Support Files/Pods-SpotifyClone/Pods-SpotifyClone.release.xcconfig"; sourceTree = "<group>"; };
 		4BDD05F1A3361616ED0A92A4 /* Pods_SpotifyClone.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SpotifyClone.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA943795288FE2F5428FFA28 /* Pods-SpotifyClone.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SpotifyClone.debug.xcconfig"; path = "Target Support Files/Pods-SpotifyClone/Pods-SpotifyClone.debug.xcconfig"; sourceTree = "<group>"; };
@@ -227,6 +233,7 @@
 				3A80752129180E02004224C0 /* Models */,
 				3A80752029180DF5004224C0 /* Controllers */,
 				3A80751A29180DD6004224C0 /* Info.plist */,
+				3AF5637A292697A100D99A6F /* ViewControllerPreview.swift */,
 			);
 			path = SpotifyClone;
 			sourceTree = "<group>";
@@ -286,6 +293,7 @@
 				3A1FBADF29243E380076E01F /* SearchResultDefaultTableViewCellViewModel.swift */,
 				3A1FBAE32924462B0076E01F /* SearchResultSubtitleTableViewCellViewModel.swift */,
 				3AF5637329259FE700D99A6F /* StretchyCollectionHeaderViewModel.swift */,
+				3AF563752926725C00D99A6F /* ArtistCollectionViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -297,8 +305,7 @@
 				3A3062E32923FF9E00064345 /* Search */,
 				3A3062C6291D938100064345 /* Browse */,
 				3A80751729180DD6004224C0 /* LaunchScreen.storyboard */,
-				3AF5636F29259EC100D99A6F /* CustomCompositionalLayout.swift */,
-				3AF5637129259F3600D99A6F /* StretchyCollectionHeaderView.swift */,
+				3AF563792926750200D99A6F /* Artist */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -340,6 +347,16 @@
 				3A1FBAE529244A770076E01F /* ArtistViewController.swift */,
 			);
 			path = Other;
+			sourceTree = "<group>";
+		};
+		3AF563792926750200D99A6F /* Artist */ = {
+			isa = PBXGroup;
+			children = (
+				3AF5636F29259EC100D99A6F /* CustomCompositionalLayout.swift */,
+				3AF5637129259F3600D99A6F /* StretchyCollectionHeaderView.swift */,
+				3AF563772926734600D99A6F /* ArtistCollectionViewCell.swift */,
+			);
+			path = Artist;
 			sourceTree = "<group>";
 		};
 		DC390AA93BD5D966C4E38673 /* Pods */ = {
@@ -471,6 +488,7 @@
 				3A80753D29181241004224C0 /* AuthManager.swift in Sources */,
 				3A3062CE291DC19F00064345 /* AlbumCellViewModel.swift in Sources */,
 				3AF5637229259F3600D99A6F /* StretchyCollectionHeaderView.swift in Sources */,
+				3AF563762926725C00D99A6F /* ArtistCollectionViewModel.swift in Sources */,
 				3A3062D2291E6FC700064345 /* RecommendedTrackCellViewModel.swift in Sources */,
 				3A3062E22921891A00064345 /* AlbumCollectionViewCellViewModel.swift in Sources */,
 				3A80753B29181225004224C0 /* SearchResultsViewController.swift in Sources */,
@@ -483,6 +501,7 @@
 				3A1FBAE029243E380076E01F /* SearchResultDefaultTableViewCellViewModel.swift in Sources */,
 				3A1FBAE829245CCB0076E01F /* RelatedArtistsResponse.swift in Sources */,
 				3A3062CC291D93CE00064345 /* RecommendedTrackCollectionViewCell.swift in Sources */,
+				3AF5637B292697A100D99A6F /* ViewControllerPreview.swift in Sources */,
 				3A1FBADE29243CB80076E01F /* SearchResultDefaultTableViewCell.swift in Sources */,
 				3A3062D6291F1B9C00064345 /* AlbumViewController.swift in Sources */,
 				3A3062DA291F2E8E00064345 /* PlaylistDetailsResponse.swift in Sources */,
@@ -503,6 +522,7 @@
 				3A3062D8291F291D00064345 /* AlbumDetailsResponse.swift in Sources */,
 				3A80750D29180DD4004224C0 /* AppDelegate.swift in Sources */,
 				3A80754929181360004224C0 /* UserProfile.swift in Sources */,
+				3AF563782926734600D99A6F /* ArtistCollectionViewCell.swift in Sources */,
 				3A3062EB29240BE200064345 /* CategoryCollectionViewCellViewModel.swift in Sources */,
 				3A1FBAE2292445BE0076E01F /* SearchResultSubtitleTableViewCell.swift in Sources */,
 				3A3062EF29241AF800064345 /* SearchResultsResponse.swift in Sources */,

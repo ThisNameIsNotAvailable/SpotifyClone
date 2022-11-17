@@ -22,8 +22,6 @@ class SearchResultsViewController: UIViewController, UITableViewDelegate, UITabl
     
     private var sections = [SearchSection]()
     
-    public var y: CGFloat!
-    
     private let tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .grouped)
         tableView.backgroundColor = .systemBackground
@@ -43,7 +41,7 @@ class SearchResultsViewController: UIViewController, UITableViewDelegate, UITabl
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        tableView.frame = CGRect(x: 0, y: y, width: view.width, height: view.height)
+        tableView.frame = view.bounds
     }
     
     func update(with results: [SearchResult]) {

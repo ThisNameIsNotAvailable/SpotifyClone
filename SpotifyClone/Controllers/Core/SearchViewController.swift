@@ -11,10 +11,6 @@ class SearchViewController: UIViewController, UISearchResultsUpdating, UISearchB
 
     private let searchController: UISearchController = {
         let vc = UISearchController(searchResultsController: SearchResultsViewController())
-        guard let searchController = vc.searchResultsController as? SearchResultsViewController else {
-            return vc
-        }
-        searchController.y = vc.searchBar.bottom
         vc.searchBar.placeholder = "Songs, Artists, Albums"
         vc.searchBar.searchBarStyle = .minimal
         vc.definesPresentationContext = true

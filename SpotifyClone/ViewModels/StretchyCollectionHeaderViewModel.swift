@@ -9,5 +9,7 @@ import Foundation
 
 struct StretchyCollectionHeaderViewModel {
     let artistName: String
+    let followers: Int?
     let imageURL: URL?
+    let title: String
 }
