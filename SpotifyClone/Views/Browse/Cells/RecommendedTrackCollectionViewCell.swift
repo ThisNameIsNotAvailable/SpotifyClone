@@ -17,6 +17,7 @@ class RecommendedTrackCollectionViewCell: UICollectionViewCell {
         imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 6
         imageView.tintColor = .label
+        imageView.backgroundColor = .lightGray
         return imageView
     }()
     
@@ -50,7 +51,8 @@ class RecommendedTrackCollectionViewCell: UICollectionViewCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        albumCoverImageView.frame = CGRect(x: 6, y: 6, width: contentView.height - 12, height: contentView.height - 12)
+        let imageSize = contentView.height - 12
+        albumCoverImageView.frame = CGRect(x: 6, y: 6, width: imageSize, height: imageSize)
         trackNameLabel.frame = CGRect(x: albumCoverImageView.right + 10, y: 0, width: contentView.width - albumCoverImageView.right - 15, height: contentView.height / 2)
         artistNameLabel.frame = CGRect(x: albumCoverImageView.right + 10, y: contentView.height / 2, width: contentView.width - albumCoverImageView.right - 15, height: contentView.height / 2)
     }
@@ -63,8 +65,24 @@ class RecommendedTrackCollectionViewCell: UICollectionViewCell {
     }
     
     public func configure(with viewModel: RecommendedTrackCellViewModel) {
+        let spinner = UIActivityIndicatorView()
+        spinner.color = .black
+        spinner.hidesWhenStopped = true
+        albumCoverImageView.addSubview(spinner)
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            spinner.leadingAnchor.constraint(equalTo: albumCoverImageView.leadingAnchor),
+            spinner.trailingAnchor.constraint(equalTo: albumCoverImageView.trailingAnchor),
+            spinner.bottomAnchor.constraint(equalTo: albumCoverImageView.bottomAnchor),
+            spinner.topAnchor.constraint(equalTo: albumCoverImageView.topAnchor)
+        ])
+        spinner.startAnimating()
+        
         trackNameLabel.text = viewModel.name
         artistNameLabel.text = viewModel.artistName
-        albumCoverImageView.sd_setImage(with: viewModel.artworkURL, placeholderImage: UIImage(systemName: "photo.circle"))
+        albumCoverImageView.sd_setImage(with: viewModel.artworkURL) { _, _, _, _ in
+            spinner.stopAnimating()
+            spinner.removeFromSuperview()
+        }
     }
 }

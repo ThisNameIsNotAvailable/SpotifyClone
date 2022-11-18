@@ -10,13 +10,14 @@ import SDWebImage
 
 class FeaturedPlaylistCollectionViewCell: UICollectionViewCell {
     static let identifier = "FeaturedPlaylistCollectionViewCell"
-
+    
     private let playlistCoverImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: "photo")
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 6
+        imageView.backgroundColor = .lightGray
         return imageView
     }()
     
@@ -66,8 +67,24 @@ class FeaturedPlaylistCollectionViewCell: UICollectionViewCell {
     }
     
     public func configure(with viewModel: FeaturedPlaylistCellViewModel) {
+        let spinner = UIActivityIndicatorView()
+        spinner.color = .black
+        spinner.hidesWhenStopped = true
+        playlistCoverImageView.addSubview(spinner)
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            spinner.leadingAnchor.constraint(equalTo: playlistCoverImageView.leadingAnchor),
+            spinner.trailingAnchor.constraint(equalTo: playlistCoverImageView.trailingAnchor),
+            spinner.bottomAnchor.constraint(equalTo: playlistCoverImageView.bottomAnchor),
+            spinner.topAnchor.constraint(equalTo: playlistCoverImageView.topAnchor)
+        ])
+        spinner.startAnimating()
+        
         playlistNameLabel.text = viewModel.name
         creatorNameLabel.text = viewModel.creatorName
-        playlistCoverImageView.sd_setImage(with: viewModel.artworkURL)
+        playlistCoverImageView.sd_setImage(with: viewModel.artworkURL) { _, _, _, _ in
+            spinner.stopAnimating()
+            spinner.removeFromSuperview()
+        }
     }
 }

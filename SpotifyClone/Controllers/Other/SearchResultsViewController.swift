@@ -22,7 +22,7 @@ class SearchResultsViewController: UIViewController, UITableViewDelegate, UITabl
     
     private var sections = [SearchSection]()
     
-    private let tableView: UITableView = {
+    public let tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .grouped)
         tableView.backgroundColor = .systemBackground
         tableView.register(SearchResultDefaultTableViewCell.self, forCellReuseIdentifier: SearchResultDefaultTableViewCell.identifier)
@@ -37,6 +37,16 @@ class SearchResultsViewController: UIViewController, UITableViewDelegate, UITabl
         view.addSubview(tableView)
         tableView.delegate = self
         tableView.dataSource = self
+    }
+    
+    override func viewDidDisappear(_ animated: Bool) {
+        resetTableView()
+    }
+    
+    func resetTableView() {
+        tableView.isHidden = true
+        sections.removeAll()
+        tableView.reloadData()
     }
     
     override func viewDidLayoutSubviews() {
@@ -134,11 +144,13 @@ class SearchResultsViewController: UIViewController, UITableViewDelegate, UITabl
         return sections[section].title
     }
     
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        20
+    }
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let result = sections[indexPath.section].results[indexPath.row]
         delegate?.didTapResult(result)
-        tableView.isHidden = true
-        self.sections.removeAll()
     }
 }

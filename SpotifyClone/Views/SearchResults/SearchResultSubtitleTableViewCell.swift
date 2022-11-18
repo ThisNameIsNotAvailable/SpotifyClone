@@ -28,6 +28,9 @@ class SearchResultSubtitleTableViewCell: UITableViewCell {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.tintColor = .label
+        imageView.layer.masksToBounds = true
+        imageView.layer.cornerRadius = 6
+        imageView.backgroundColor = .lightGray
         return imageView
     }()
     
@@ -62,8 +65,24 @@ class SearchResultSubtitleTableViewCell: UITableViewCell {
     }
     
     func configure(with viewModel: SearchResultSubtitleTableViewCellViewModel) {
+        let spinner = UIActivityIndicatorView()
+        spinner.color = .black
+        spinner.hidesWhenStopped = true
+        iconImageView.addSubview(spinner)
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            spinner.leadingAnchor.constraint(equalTo: iconImageView.leadingAnchor),
+            spinner.trailingAnchor.constraint(equalTo: iconImageView.trailingAnchor),
+            spinner.bottomAnchor.constraint(equalTo: iconImageView.bottomAnchor),
+            spinner.topAnchor.constraint(equalTo: iconImageView.topAnchor)
+        ])
+        spinner.startAnimating()
+        
         label.text = viewModel.title
         subtitleLabel.text = viewModel.subtitle
-        iconImageView.sd_setImage(with: viewModel.imageURL, placeholderImage: UIImage(systemName: "person.circle"))
+        iconImageView.sd_setImage(with: viewModel.imageURL) { _, _, _, _ in
+            spinner.stopAnimating()
+            spinner.removeFromSuperview()
+        }
     }
 }

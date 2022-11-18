@@ -28,7 +28,6 @@ class CustomCompositionalLayout: UICollectionViewCompositionalLayout {
                     isSet = true
                     offset = contentOffsetY
                 }
-                
                 if contentOffsetY < 0 {
                     let width = collectionView.frame.width
                     let height = attribute.frame.width - contentOffsetY

@@ -84,6 +84,21 @@ class SearchViewController: UIViewController, UISearchResultsUpdating, UISearchB
         }
     }
     
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        guard let resultsController = searchController.searchResultsController as? SearchResultsViewController else {
+            return
+        }
+        
+        if let text = searchBar.text {
+            if text == "" {
+                
+                resultsController.resetTableView()
+            }
+        } else {
+            resultsController.resetTableView()
+        }
+    }
+    
     func updateSearchResults(for searchController: UISearchController) {
         
     }

@@ -21,6 +21,7 @@ class SearchResultDefaultTableViewCell: UITableViewCell {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
         imageView.tintColor = .label
+        imageView.backgroundColor = .lightGray
         return imageView
     }()
     
@@ -53,7 +54,23 @@ class SearchResultDefaultTableViewCell: UITableViewCell {
     }
     
     func configure(with viewModel: SearchResultDefaultTableViewCellViewModel) {
+        let spinner = UIActivityIndicatorView()
+        spinner.color = .black
+        spinner.hidesWhenStopped = true
+        iconImageView.addSubview(spinner)
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            spinner.leadingAnchor.constraint(equalTo: iconImageView.leadingAnchor),
+            spinner.trailingAnchor.constraint(equalTo: iconImageView.trailingAnchor),
+            spinner.bottomAnchor.constraint(equalTo: iconImageView.bottomAnchor),
+            spinner.topAnchor.constraint(equalTo: iconImageView.topAnchor)
+        ])
+        spinner.startAnimating()
+        
         label.text = viewModel.title
-        iconImageView.sd_setImage(with: viewModel.imageURL, placeholderImage: UIImage(systemName: "person.circle"))
+        iconImageView.sd_setImage(with: viewModel.imageURL) { _, _, _, _ in
+            spinner.stopAnimating()
+            spinner.removeFromSuperview()
+        }
     }
 }

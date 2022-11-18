@@ -108,10 +108,12 @@ class ArtistViewController: UIViewController {
         self.navigationController?.navigationBar.subviews.first?.alpha = 0
     }
     
+    private var topOffset: CGFloat?
     override func viewWillAppear(_ animated: Bool) {
-        guard let navigationController = self.navigationController else { return }
-        if isSet {
-            let threshold: CGFloat = view.width - 40 // distance from bar where fade-in begins
+        if let offset = topOffset {
+            guard let navigationController = self.navigationController else { return }
+            let titleHeight: CGFloat = 40
+            let threshold: CGFloat = view.width - titleHeight // distance from bar where fade-in begins
             if (collectionView.contentOffset.y - offset) / threshold > 0.7 {
                 let alpha = ((collectionView.contentOffset.y - offset) / threshold - 0.7)*3.3
                 navigationController.navigationBar.subviews.first?.alpha = alpha
@@ -202,27 +204,18 @@ class ArtistViewController: UIViewController {
         
         collectionView.reloadData()
     }
-    var isSet: Bool = false
-    var isScrolled = false
 }
 
 extension ArtistViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UIScrollViewDelegate {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard let navigationController = self.navigationController else { return }
-        if !isSet {
-            isSet = true
-            offset = collectionView.contentOffset.y
-        }
-        
-        let threshold: CGFloat = view.width - 40 // distance from bar where fade-in begins
+        let offset = -(navigationController.navigationBar.height + (view.window?.windowScene?.statusBarManager?.statusBarFrame.height ?? 0))
+        topOffset = offset
+        let titleHeight: CGFloat = 40
+        let threshold: CGFloat = view.width - titleHeight // distance from bar where fade-in begins
         if (collectionView.contentOffset.y - offset) / threshold > 0.7 {
             let alpha = ((collectionView.contentOffset.y - offset) / threshold - 0.7)*3.3
-            if alpha > 0.3 && !isScrolled {
-                isScrolled = true
-            } else if alpha < 0.3 {
-                isScrolled = false
-            }
             navigationController.navigationBar.subviews.first?.alpha = alpha
             navigationController.navigationBar.titleTextAttributes = [
                 .foregroundColor: UIColor.label.withAlphaComponent(alpha)

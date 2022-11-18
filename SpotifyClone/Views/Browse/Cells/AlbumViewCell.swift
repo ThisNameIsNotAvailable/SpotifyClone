@@ -17,6 +17,7 @@ class AlbumViewCell: UICollectionViewCell {
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 6
+        imageView.backgroundColor = .lightGray
         return imageView
     }()
     
@@ -65,6 +66,7 @@ class AlbumViewCell: UICollectionViewCell {
         numberOfTracksLabel.sizeToFit()
         
         let albumLabelHeight = min(60, albumLabelSize.height)
+        
         albumCoverImageView.frame = CGRect(x: 8, y: 8, width: imageSize, height: imageSize)
         
         albumNameLabel.frame = CGRect(x: albumCoverImageView.right + 10, y: 5, width: albumLabelSize.width, height: albumLabelHeight)
@@ -84,9 +86,25 @@ class AlbumViewCell: UICollectionViewCell {
     }
     
     public func configure(with viewModel: AlbumCellViewModel) {
+        let spinner = UIActivityIndicatorView()
+        spinner.color = .black
+        spinner.hidesWhenStopped = true
+        albumCoverImageView.addSubview(spinner)
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            spinner.leadingAnchor.constraint(equalTo: albumCoverImageView.leadingAnchor),
+            spinner.trailingAnchor.constraint(equalTo: albumCoverImageView.trailingAnchor),
+            spinner.bottomAnchor.constraint(equalTo: albumCoverImageView.bottomAnchor),
+            spinner.topAnchor.constraint(equalTo: albumCoverImageView.topAnchor)
+        ])
+        spinner.startAnimating()
+        
         albumNameLabel.text = viewModel.name
         artistNameLabel.text = viewModel.artistName
         numberOfTracksLabel.text = "Tracks: \(viewModel.numberOfTracks)"
-        albumCoverImageView.sd_setImage(with: viewModel.artworkURL)
+        albumCoverImageView.sd_setImage(with: viewModel.artworkURL) { _, _, _, _ in
+            spinner.stopAnimating()
+            spinner.removeFromSuperview()
+        }
     }
 }

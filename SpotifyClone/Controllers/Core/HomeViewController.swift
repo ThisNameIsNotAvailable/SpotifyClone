@@ -30,12 +30,7 @@ class HomeViewController: UIViewController {
         return HomeViewController.createSectionLayout(sectionIndex: sectionIndex)
     })
     
-    private let spinner: UIActivityIndicatorView = {
-        let spinner = UIActivityIndicatorView()
-        spinner.tintColor = .label
-        spinner.hidesWhenStopped = true
-        return spinner
-    }()
+    
     
     private var newAlbums = [Album]()
     private var playlists = [Playlist]()
@@ -49,7 +44,6 @@ class HomeViewController: UIViewController {
         view.backgroundColor = .systemBackground
         navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "gear"), style: .done, target: self, action: #selector(didTapSettings))
         configureCollectionView()
-        view.addSubview(spinner)
         fetchData()
         collectionView.delaysContentTouches = false
     }
