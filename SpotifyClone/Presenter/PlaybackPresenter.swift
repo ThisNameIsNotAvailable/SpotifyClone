@@ -75,10 +75,16 @@ final class PlaybackPresenter {
             return
         } else if currentTrack.preview_url == nil {
             let alert = UIAlertController(title: "No Preview For This Track", message: "Playing Track That Have A Preview", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel))
+            alert.addAction(UIAlertAction(title: "Dismiss", style: .cancel, handler: { [weak self] _ in
+                self?.createPlayer(from: viewController, currentTrack: currentTrack, tracks: tracks)
+            }))
             viewController.present(alert, animated: true)
+        } else {
+            createPlayer(from: viewController, currentTrack: currentTrack, tracks: tracks)
         }
-        
+    }
+    
+    private func createPlayer(from viewController: UIViewController, currentTrack: AudioTrack, tracks: [AudioTrack]) {
         self.tracks = tracks
         self.track = nil
 
@@ -89,11 +95,11 @@ final class PlaybackPresenter {
             return AVPlayerItem(url: url)
         }
         
-        playerItems = items
+        self.playerItems = items
         
         let currentIndex = tracks.firstIndex(where: { $0.id == currentTrack.id })
-        player = AVPlayer(playerItem: index == 0 ? items.first : items[currentIndex!])
-        player?.volume = 0.5
+        self.player = AVPlayer(playerItem: currentTrack.preview_url == nil ? items.first : items[currentIndex!])
+        self.player?.volume = 0.5
 
         let vc = PlayerViewController()
         vc.dataSource = self
