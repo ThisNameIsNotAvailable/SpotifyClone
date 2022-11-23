@@ -37,6 +37,9 @@ class HomeViewController: UIViewController {
     private var tracks = [AudioTrack]()
     
     private var sections = [BrowseSectionType]()
+    var source = [Int]()
+    var prime_occurrencies = [Int]()
+    var occurrencies = [Int]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -179,7 +182,7 @@ extension HomeViewController: UICollectionViewDelegate, UICollectionViewDataSour
             vc.navigationItem.largeTitleDisplayMode = .never
             navigationController?.pushViewController(vc, animated: true)
         case .recommendedTracks:
-            break
+            PlaybackPresenter.shared.startPlayback(from: self, tracks: tracks, index: indexPath.row)
         }
     }
     

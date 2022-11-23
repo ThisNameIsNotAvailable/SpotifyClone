@@ -278,8 +278,9 @@ extension ArtistViewController: UICollectionViewDelegate, UICollectionViewDataSo
             let vc = ArtistViewController(artist: artists[indexPath.row])
             vc.navigationItem.largeTitleDisplayMode = .never
             navigationController?.pushViewController(vc, animated: true)
-        default:
-            break
+        case .popularTracks:
+            let track = tracks[indexPath.row]
+            PlaybackPresenter.shared.startPlayback(from: self, track: track)
         }
     }
     

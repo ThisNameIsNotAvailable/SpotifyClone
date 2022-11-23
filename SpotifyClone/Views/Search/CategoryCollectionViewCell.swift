@@ -62,7 +62,7 @@ class CategoryCollectionViewCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         backImageView.frame = contentView.bounds
-        label.frame = CGRect(x: 10, y: contentView.height / 2, width: contentView.width - 20, height: contentView.height / 2)
+        label.frame = CGRect(x: 10, y: 10, width: contentView.width - 20, height: contentView.height)
     }
     
     func configure(with viewModel: CategoryCollectionViewCellViewModel) {

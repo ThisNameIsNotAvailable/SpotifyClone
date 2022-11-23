@@ -11,6 +11,8 @@ class AlbumViewController: UIViewController {
     
     private let album: Album
     
+    private var tracks = [AudioTrack]()
+    
     private var shareURL: URL?
     
     private var viewModels = [RecommendedTrackCellViewModel]()
@@ -51,6 +53,7 @@ class AlbumViewController: UIViewController {
                     break
                 case .success(let model):
                     self?.shareURL = URL(string: model.external_urls["spotify"] ?? "")
+                    self?.tracks = model.tracks.items
                     self?.viewModels = model.tracks.items.compactMap { track in
                         return RecommendedTrackCellViewModel(name: track.name, artistName: track.artists.first?.name ?? "-", artworkURL: URL(string: self?.album.images.first?.url ?? ""))
                     }
@@ -98,6 +101,13 @@ extension AlbumViewController: UICollectionViewDelegate, UICollectionViewDataSou
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
+        let index = indexPath.row
+        let tracksWithAlbum: [AudioTrack] = tracks.compactMap({
+            var track = $0
+            track.album = album
+            return track
+        })
+        PlaybackPresenter.shared.startPlayback(from: self, tracks: tracksWithAlbum, index: index)
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
@@ -113,6 +123,11 @@ extension AlbumViewController: UICollectionViewDelegate, UICollectionViewDataSou
 
 extension AlbumViewController: PlaylistHeaderCollectionReusableViewDelegate {
     func playlistHeaderCollectionReusableViewDidTapPlayAll(_ header: PlaylistHeaderCollectionReusableView) {
-        // Start play list play in queue
+        let tracksWithAlbum: [AudioTrack] = tracks.compactMap({
+            var track = $0
+            track.album = album
+            return track
+        })
+        PlaybackPresenter.shared.startPlayback(from: self, tracks: tracksWithAlbum)
     }
 }
