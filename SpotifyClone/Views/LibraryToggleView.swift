@@ -62,12 +62,10 @@ class LibraryToggleView: UIView {
     }
     
     @objc private func didTapPlaylists() {
-        state = .playlist
         delegate?.libraryToggleViewDidTapPlaylists(self)
     }
     
     @objc private func didTapAlbums() {
-        state = .album
         delegate?.libraryToggleViewDidTapAlbums(self)
     }
     

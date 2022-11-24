@@ -18,7 +18,7 @@ protocol PlayerViewControllerDelegate: AnyObject {
 }
 
 class PlayerViewController: UIViewController {
-
+    
     private let imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.layer.cornerRadius = 8

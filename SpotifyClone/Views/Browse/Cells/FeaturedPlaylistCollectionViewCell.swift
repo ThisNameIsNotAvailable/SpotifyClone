@@ -18,6 +18,7 @@ class FeaturedPlaylistCollectionViewCell: UICollectionViewCell {
         imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 6
         imageView.backgroundColor = .lightGray
+        imageView.tintColor = .label
         return imageView
     }()
     
@@ -82,9 +83,14 @@ class FeaturedPlaylistCollectionViewCell: UICollectionViewCell {
         
         playlistNameLabel.text = viewModel.name
         creatorNameLabel.text = viewModel.creatorName
-        playlistCoverImageView.sd_setImage(with: viewModel.artworkURL) { _, _, _, _ in
+        playlistCoverImageView.sd_setImage(with: viewModel.artworkURL) { [weak self] image, _, _, _ in
             spinner.stopAnimating()
             spinner.removeFromSuperview()
+            
+            guard image == nil else {
+                return
+            }
+            self?.playlistCoverImageView.image = UIImage(systemName: "photo.circle")
         }
     }
 }

@@ -18,6 +18,7 @@ class AlbumViewCell: UICollectionViewCell {
         imageView.clipsToBounds = true
         imageView.layer.cornerRadius = 6
         imageView.backgroundColor = .lightGray
+        imageView.tintColor = .label
         return imageView
     }()
     
@@ -102,9 +103,14 @@ class AlbumViewCell: UICollectionViewCell {
         albumNameLabel.text = viewModel.name
         artistNameLabel.text = viewModel.artistName
         numberOfTracksLabel.text = "Tracks: \(viewModel.numberOfTracks)"
-        albumCoverImageView.sd_setImage(with: viewModel.artworkURL) { _, _, _, _ in
+        albumCoverImageView.sd_setImage(with: viewModel.artworkURL) { [weak self] image, _, _, _ in
             spinner.stopAnimating()
             spinner.removeFromSuperview()
+            
+            guard image == nil else {
+                return
+            }
+            self?.albumCoverImageView.image = UIImage(systemName: "photo.circle")
         }
     }
 }

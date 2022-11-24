@@ -9,13 +9,13 @@ import UIKit
 import SDWebImage
 
 class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-
+    
     private let tableView: UITableView = {
         let tableView = UITableView()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         return tableView
     }()
-     
+    
     private var models = [String]()
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -41,7 +41,11 @@ class ProfileViewController: UIViewController, UITableViewDelegate, UITableViewD
                     self?.updateUI(with: model)
                     break
                 case .failure(let error):
-                    print(error.localizedDescription)
+                    DispatchQueue.main.async { [weak self] in
+                        let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                        self?.present(alert, animated: true)
+                    }
                     self?.failedToGetProfile()
                 }
             }

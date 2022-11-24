@@ -80,9 +80,14 @@ class RecommendedTrackCollectionViewCell: UICollectionViewCell {
         
         trackNameLabel.text = viewModel.name
         artistNameLabel.text = viewModel.artistName
-        albumCoverImageView.sd_setImage(with: viewModel.artworkURL) { _, _, _, _ in
+        albumCoverImageView.sd_setImage(with: viewModel.artworkURL) { [weak self] image, _, _, _ in
             spinner.stopAnimating()
             spinner.removeFromSuperview()
+            
+            guard image == nil else {
+                return
+            }
+            self?.albumCoverImageView.image = UIImage(systemName: "photo.circle")
         }
     }
 }

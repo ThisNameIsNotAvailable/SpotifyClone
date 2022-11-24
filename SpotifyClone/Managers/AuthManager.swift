@@ -85,6 +85,14 @@ final class AuthManager {
             do {
                 let result = try JSONDecoder().decode(AuthResponse.self, from: data)
                 self?.cacheToken(result: result)
+                APICaller.shared.getCurrentUserProfile { result in
+                    switch result {
+                    case .success(let profile):
+                        UserDefaults.standard.setValue(profile.id, forKey: "userID")
+                    case .failure(let error):
+                        print("Error getting user ID: \(error.localizedDescription)")
+                    }
+                }
                 completion(true)
             } catch {
                 print(error)
@@ -96,15 +104,19 @@ final class AuthManager {
     /// Supplies valid token to be used with API Calls
     public func withValidToken(completion: @escaping (String) -> Void) {
         guard !refreshingToken else {
+            
             // append the completion
             onRefreshBlocks.append(completion)
             return
         }
+        
         if shouldRefreshToken {
             // refresh
             refreshIfNeeded { [weak self] success in
                 if success, let token = self?.accessToken {
                     completion(token)
+                }else {
+                    completion("error")
                 }
             }
         } else if let token = accessToken {
@@ -169,5 +181,13 @@ final class AuthManager {
             UserDefaults.standard.setValue(refresh_token, forKey: "refresh_token")
         }
         UserDefaults.standard.setValue(Date().addingTimeInterval(TimeInterval(result.expires_in)), forKey: "expiration_date")
+    }
+    
+    public func signOut(completion: @escaping (Bool) -> Void) {
+        UserDefaults.standard.setValue(nil, forKey: "access_token")
+        UserDefaults.standard.setValue(nil, forKey: "refresh_token")
+        UserDefaults.standard.setValue(nil, forKey: "expiration_date")
+        UserDefaults.standard.setValue(nil, forKey: "userID")
+        completion(true)
     }
 }

@@ -8,7 +8,7 @@
 import UIKit
 
 class CategoryViewController: UIViewController {
-
+    
     private let category: Category
     private var playlists = [Playlist]()
     private let collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewCompositionalLayout(sectionProvider: { _, _ in
@@ -44,7 +44,11 @@ class CategoryViewController: UIViewController {
                     self?.playlists = model.playlists.items
                     self?.collectionView.reloadData()
                 case .failure(let error):
-                    print(error.localizedDescription)
+                    DispatchQueue.main.async { [weak self] in
+                        let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                        self?.present(alert, animated: true)
+                    }
                     break
                 }
             }
@@ -89,7 +93,7 @@ extension CategoryViewController: UICollectionViewDelegate, UICollectionViewData
             cell?.alpha = 0.7
         })
     }
-
+    
     func collectionView(_ collectionView: UICollectionView, didUnhighlightItemAt indexPath: IndexPath) {
         let cell = collectionView.cellForItem(at: indexPath)
         UIView.animate(withDuration: 0.3, delay: 0, options: .beginFromCurrentState, animations: {

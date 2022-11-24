@@ -24,6 +24,14 @@ class PlaylistViewController: UIViewController {
         return section
     }))
     
+    private let spinner: UIActivityIndicatorView = {
+        let spinner = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
+        spinner.style = .medium
+        return spinner
+    }()
+    
+    let refresher = UIRefreshControl()
+    
     init(playlist: Playlist) {
         self.playlist = playlist
         super.init(nibName: nil, bundle: nil)
@@ -43,8 +51,42 @@ class PlaylistViewController: UIViewController {
         collectionView.register(PlaylistHeaderCollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: PlaylistHeaderCollectionReusableView.identifier)
         collectionView.delegate = self
         collectionView.dataSource = self
+        fetchData()
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(didTapShare))
+        refresher.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+        if #available(iOS 10.0, *) {
+            collectionView.refreshControl = refresher
+        } else {
+            collectionView.addSubview(refresher)
+        }
+    }
+    
+    @objc private func refreshData() {
+        collectionView.refreshControl?.beginRefreshing()
+        DispatchQueue.global().asyncAfter(deadline: .now() + .seconds(1)) { [weak self] in
+            DispatchQueue.main.async {
+                self?.fetchData()
+            }
+        }
+    }
+    
+    private func fetchData() {
+        let alert = UIAlertController(title: "", message: "Loading...", preferredStyle: .alert)
+        alert.view.addSubview(spinner)
+        spinner.startAnimating()
+        var isDismissed = false
+        present(alert, animated: true) { [weak self] in
+            if isDismissed {
+                self?.dismiss(animated: true)
+            }
+        }
         APICaller.shared.getPlaylistDetails(for: playlist) { [weak self] result in
             DispatchQueue.main.async {
+                self?.collectionView.refreshControl?.endRefreshing()
+                self?.dismiss(animated: true, completion: {
+                    self?.spinner.stopAnimating()
+                    isDismissed = true
+                })
                 switch result {
                 case .success(let model):
                     self?.tracks = model.tracks.items.compactMap({ item in
@@ -60,11 +102,16 @@ class PlaylistViewController: UIViewController {
                     })
                     self?.collectionView.reloadData()
                 case .failure(let error):
-                    print(error.localizedDescription)
+                    DispatchQueue.main.async { [weak self] in
+                        self?.dismiss(animated: true) {
+                            let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
+                            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                            self?.present(alert, animated: true)
+                        }
+                    }
                 }
             }
         }
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(didTapShare))
     }
     
     @objc private func didTapShare() {
@@ -98,11 +145,13 @@ extension PlaylistViewController: UICollectionViewDelegate, UICollectionViewData
         }
         let model = viewModels[indexPath.row]
         cell.configure(with: model)
+        cell.addInteraction(UIContextMenuInteraction(delegate: self))
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
+        HapticsManager.shared.vibrateForSelection()
         let index = indexPath.row
         PlaybackPresenter.shared.startPlayback(from: self, tracks: tracks, index: index)
     }
@@ -116,6 +165,8 @@ extension PlaylistViewController: UICollectionViewDelegate, UICollectionViewData
         header.delegate = self
         return header
     }
+    
+    
 }
 
 extension PlaylistViewController: PlaylistHeaderCollectionReusableViewDelegate {
@@ -123,3 +174,43 @@ extension PlaylistViewController: PlaylistHeaderCollectionReusableViewDelegate {
         PlaybackPresenter.shared.startPlayback(from: self, tracks: tracks)
     }
 }
+
+extension PlaylistViewController: UIContextMenuInteractionDelegate {
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ -> UIMenu? in
+            let locationInCollectionView = interaction.location(in: self?.collectionView)
+            
+            guard let indexPath = self?.collectionView.indexPathForItem(at: locationInCollectionView),
+                  let model = self?.tracks[indexPath.row],
+                  let playlist = self?.playlist else {
+                return nil
+            }
+            let userID = UserDefaults.standard.value(forKey: "userID") as? String
+            
+            let addAction = UIAction(title: "Remove From Playlist", image: UIImage(systemName: "trash"), attributes: (userID == playlist.owner.id) ? .destructive : .disabled) { _ in
+                APICaller.shared.removeTrackFromPlaylist(track: model, playlist: playlist) { success in
+                    if success {
+                        DispatchQueue.main.async {
+                            self?.tracks.remove(at: indexPath.row)
+                            self?.viewModels.remove(at: indexPath.row)
+                            self?.collectionView.deleteItems(at: [indexPath])
+                        }
+                    } else {
+                        HapticsManager.shared.vibrate(for: .error)
+                        DispatchQueue.main.async { [weak self] in
+                            let alert = UIAlertController(title: "Error", message: "Failed To Delete From Playlist", preferredStyle: .alert)
+                            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                            self?.present(alert, animated: true)
+                        }
+                    }
+                }
+            }
+            let cancelAction = UIAction(title: "Cancel") { _ in
+                
+            }
+            
+            return UIMenu(title: "", children: [addAction, cancelAction])
+        }
+    }
+}
+

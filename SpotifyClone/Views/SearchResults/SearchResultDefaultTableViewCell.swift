@@ -68,9 +68,15 @@ class SearchResultDefaultTableViewCell: UITableViewCell {
         spinner.startAnimating()
         
         label.text = viewModel.title
-        iconImageView.sd_setImage(with: viewModel.imageURL) { _, _, _, _ in
+        iconImageView.sd_setImage(with: viewModel.imageURL) { [weak self] image, _, _, _ in
             spinner.stopAnimating()
             spinner.removeFromSuperview()
+            
+            guard image == nil else {
+                return
+            }
+            
+            self?.iconImageView.image = UIImage(systemName: "photo.circle")
         }
     }
 }

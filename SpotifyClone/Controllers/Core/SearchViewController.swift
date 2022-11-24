@@ -8,7 +8,7 @@
 import UIKit
 
 class SearchViewController: UIViewController, UISearchResultsUpdating, UISearchBarDelegate {
-
+    
     private let searchController: UISearchController = {
         let vc = UISearchController(searchResultsController: SearchResultsViewController())
         vc.searchBar.placeholder = "Songs, Artists, Albums"
@@ -43,7 +43,11 @@ class SearchViewController: UIViewController, UISearchResultsUpdating, UISearchB
             DispatchQueue.main.async {
                 switch result {
                 case .failure(let error):
-                    print(error.localizedDescription)
+                    DispatchQueue.main.async { [weak self] in
+                        let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                        self?.present(alert, animated: true)
+                    }
                 case .success(let model):
                     self?.categories = model.categories.items
                     self?.collectionView.reloadData()
@@ -78,7 +82,11 @@ class SearchViewController: UIViewController, UISearchResultsUpdating, UISearchB
                 case .success(let results):
                     resultsController.update(with: results)
                 case .failure(let error):
-                    print(error.localizedDescription)
+                    DispatchQueue.main.async { [weak self] in
+                        let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                        self?.present(alert, animated: true)
+                    }
                 }
             }
         }
@@ -125,6 +133,7 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
+        HapticsManager.shared.vibrateForSelection()
         collectionView.resignFirstResponder()
         let category = categories[indexPath.row]
         let vc = CategoryViewController(category: category)
@@ -139,7 +148,7 @@ extension SearchViewController: UICollectionViewDelegate, UICollectionViewDataSo
             cell?.alpha = 0.7
         })
     }
-
+    
     func collectionView(_ collectionView: UICollectionView, didUnhighlightItemAt indexPath: IndexPath) {
         let cell = collectionView.cellForItem(at: indexPath)
         UIView.animate(withDuration: 0.3, delay: 0, options: .beginFromCurrentState, animations: {

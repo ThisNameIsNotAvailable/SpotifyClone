@@ -17,7 +17,6 @@ class CategoryCollectionViewCell: UICollectionViewCell {
         imageView.contentMode = .scaleAspectFill
         imageView.alpha = 0.4
         imageView.layer.masksToBounds = true
-        imageView.layer.cornerRadius = 8
         return imageView
     }()
     

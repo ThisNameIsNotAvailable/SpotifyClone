@@ -41,7 +41,8 @@ final class PlaylistHeaderCollectionReusableView: UICollectionReusableView {
     private let imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.contentMode = .scaleAspectFill
-        imageView.image = UIImage(systemName: "photo")
+        imageView.image = UIImage(systemName: "photo.circle")
+        imageView.tintColor = .label
         return imageView
     }()
     
@@ -89,10 +90,30 @@ final class PlaylistHeaderCollectionReusableView: UICollectionReusableView {
     }
     
     func configure(with model: PlaylistHeaderViewModel) {
+        let spinner = UIActivityIndicatorView()
+        spinner.color = .black
+        spinner.hidesWhenStopped = true
+        imageView.addSubview(spinner)
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            spinner.leadingAnchor.constraint(equalTo: imageView.leadingAnchor),
+            spinner.trailingAnchor.constraint(equalTo: imageView.trailingAnchor),
+            spinner.bottomAnchor.constraint(equalTo: imageView.bottomAnchor),
+            spinner.topAnchor.constraint(equalTo: imageView.topAnchor)
+        ])
+        spinner.startAnimating()
+        
         nameLabel.text = model.name
         descriptionLabel.text = model.description
         ownerLabel.text = model.ownerName
-        imageView.sd_setImage(with: model.artworkURL)
+        imageView.sd_setImage(with: model.artworkURL) { [weak self] image, _, _, _ in
+            spinner.stopAnimating()
+            spinner.removeFromSuperview()
+            guard image == nil else {
+                return
+            }
+            self?.imageView.image = UIImage(systemName: "photo.circle")
+        }
     }
     
     override func prepareForReuse() {

@@ -26,6 +26,14 @@ class AlbumViewController: UIViewController {
         return section
     }))
     
+    private let spinner: UIActivityIndicatorView = {
+        let spinner = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
+        spinner.style = .medium
+        return spinner
+    }()
+    
+    let refresher = UIRefreshControl()
+    
     init(album: Album) {
         self.album = album
         super.init(nibName: nil, bundle: nil)
@@ -45,12 +53,51 @@ class AlbumViewController: UIViewController {
         collectionView.register(PlaylistHeaderCollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: PlaylistHeaderCollectionReusableView.identifier)
         collectionView.delegate = self
         collectionView.dataSource = self
+        fetchData()
+        navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "list.bullet"), style: .plain, target: self, action: #selector(didTapRightButton))
+        refresher.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+        if #available(iOS 10.0, *) {
+            collectionView.refreshControl = refresher
+        } else {
+            collectionView.addSubview(refresher)
+        }
+    }
+    
+    @objc private func refreshData() {
+        collectionView.refreshControl?.beginRefreshing()
+        DispatchQueue.global().asyncAfter(deadline: .now() + .seconds(1)) { [weak self] in
+            DispatchQueue.main.async {
+                self?.fetchData()
+            }
+        }
+    }
+    
+    private func fetchData() {
+        let alert = UIAlertController(title: "", message: "Loading...", preferredStyle: .alert)
+        alert.view.addSubview(spinner)
+        spinner.startAnimating()
+        var isDismissed = false
+        present(alert, animated: true) { [weak self] in
+            if isDismissed {
+                self?.dismiss(animated: true)
+            }
+        }
         APICaller.shared.getAlbumDetails(for: album) { [weak self] result in
             DispatchQueue.main.async {
+                self?.collectionView.refreshControl?.endRefreshing()
+                self?.dismiss(animated: true, completion: {
+                    self?.spinner.stopAnimating()
+                    isDismissed = true
+                })
                 switch result {
                 case .failure(let error):
-                    print(error.localizedDescription)
-                    break
+                    DispatchQueue.main.async { [weak self] in
+                        self?.dismiss(animated: true) {
+                            let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
+                            alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                            self?.present(alert, animated: true)
+                        }
+                    }
                 case .success(let model):
                     self?.shareURL = URL(string: model.external_urls["spotify"] ?? "")
                     self?.tracks = model.tracks.items
@@ -62,16 +109,78 @@ class AlbumViewController: UIViewController {
                 }
             }
         }
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(didTapShare))
     }
     
-    @objc private func didTapShare() {
-        guard let url = shareURL else {
-            return
+    @objc private func didTapRightButton() {
+        let alert = UIAlertController(title: "What do you want to do?", message: "", preferredStyle: .actionSheet)
+        alert.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+        alert.addAction(UIAlertAction(title: "Share Album", style: .default, handler: { [weak self] _ in
+            guard let url = self?.shareURL else {
+                return
+            }
+            let vc = UIActivityViewController(activityItems: [url], applicationActivities: [])
+            vc.popoverPresentationController?.barButtonItem = self?.navigationItem.rightBarButtonItem
+            self?.present(vc, animated: true)
+        }))
+        
+        APICaller.shared.getCurrentUserAlbums { [weak self] result in
+            guard let strongSelf = self else {
+                return
+            }
+            switch result {
+            case .success(let response):
+                if !response.items.contains (where: { userAlbum in
+                    userAlbum.album.id == strongSelf.album.id
+                }) {
+                    DispatchQueue.main.async {
+                        alert.addAction(UIAlertAction(title: "Add To Saved Albums", style: .default, handler: { [weak self] _ in
+                            guard let strongSelf = self else {
+                                return
+                            }
+                            APICaller.shared.saveAlbum(album: strongSelf.album) { success in
+                                if success {
+                                    HapticsManager.shared.vibrate(for: .success)
+                                } else {
+                                    HapticsManager.shared.vibrate(for: .error)
+                                }
+                            }
+                        }))
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        alert.addAction(UIAlertAction(title: "Remove From Saved Albums", style: .destructive, handler: { [weak self] _ in
+                            guard let strongSelf = self else {
+                                return
+                            }
+                            APICaller.shared.removeAlbum(album: strongSelf.album) { success in
+                                if success {
+                                    HapticsManager.shared.vibrate(for: .success)
+                                } else {
+                                    DispatchQueue.main.async { [weak self] in
+                                        let alert = UIAlertController(title: "Error", message: "Failed To Delete From Saved Albums", preferredStyle: .alert)
+                                        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                                        self?.present(alert, animated: true)
+                                    }
+                                    HapticsManager.shared.vibrate(for: .error)
+                                }
+                            }
+                        }))
+                    }
+                }
+            case .failure(let error):
+                DispatchQueue.main.async { [weak self] in
+                    let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
+                    alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                    self?.present(alert, animated: true)
+                }
+            }
+            
+            
+            DispatchQueue.main.async {
+                alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                strongSelf.present(alert, animated: true)
+            }
         }
-        let vc = UIActivityViewController(activityItems: [url], applicationActivities: [])
-        vc.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
-        present(vc, animated: true)
     }
     
     override func viewDidLayoutSubviews() {
@@ -101,6 +210,7 @@ extension AlbumViewController: UICollectionViewDelegate, UICollectionViewDataSou
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
+        HapticsManager.shared.vibrateForSelection()
         let index = indexPath.row
         let tracksWithAlbum: [AudioTrack] = tracks.compactMap({
             var track = $0

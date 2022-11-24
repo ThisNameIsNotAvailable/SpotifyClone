@@ -76,9 +76,27 @@ class ArtistViewController: UIViewController {
         }
     }))
     
+    private let spinner: UIActivityIndicatorView = {
+        let spinner = UIActivityIndicatorView(frame: CGRect(x: 10, y: 5, width: 50, height: 50))
+        spinner.style = .medium
+        return spinner
+    }()
+    
+    private let noDataLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .label
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.text = "No Data. Try Pull To Refresh."
+        label.font = .systemFont(ofSize: 32, weight: .semibold)
+        return label
+    }()
+    
     var artists = [Artist]()
     var tracks = [AudioTrack]()
     var albums = [Album]()
+    
+    let refresher = UIRefreshControl()
     
     init(artist: Artist) {
         self.artist = artist
@@ -106,6 +124,22 @@ class ArtistViewController: UIViewController {
         fetchData()
         collectionView.delaysContentTouches = false
         self.navigationController?.navigationBar.subviews.first?.alpha = 0
+        refresher.addTarget(self, action: #selector(refreshData), for: .valueChanged)
+        refresher.layer.zPosition = 10
+        if #available(iOS 10.0, *) {
+            collectionView.refreshControl = refresher
+        } else {
+            collectionView.addSubview(refresher)
+        }
+    }
+    
+    @objc private func refreshData() {
+        collectionView.refreshControl?.beginRefreshing()
+        DispatchQueue.global().asyncAfter(deadline: .now() + .seconds(1)) { [weak self] in
+            DispatchQueue.main.async {
+                self?.fetchData()
+            }
+        }
     }
     
     private var topOffset: CGFloat?
@@ -130,6 +164,16 @@ class ArtistViewController: UIViewController {
     }
     
     private func fetchData() {
+        let alert = UIAlertController(title: "", message: "Loading...", preferredStyle: .alert)
+        alert.view.addSubview(spinner)
+        spinner.startAnimating()
+        var isDismissed = false
+        present(alert, animated: true) { [weak self] in
+            if isDismissed {
+                self?.dismiss(animated: true)
+            }
+        }
+        
         let group = DispatchGroup()
         group.enter()
         group.enter()
@@ -139,46 +183,103 @@ class ArtistViewController: UIViewController {
         var relatedArtists: RelatedArtistsResponse?
         var popularTracks: RecommendationsResponse?
         
-        APICaller.shared.getAlbums(of: artist) { result in
+        APICaller.shared.getAlbums(of: artist) { [weak self] result in
             defer {
                 group.leave()
             }
             switch result {
             case .failure(let error):
-                print(error.localizedDescription)
+                DispatchQueue.main.async { [weak self] in
+                    self?.dismiss(animated: true) {
+                        let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                        self?.present(alert, animated: true)
+                    }
+                    self?.collectionView.refreshControl?.endRefreshing()
+                    guard let strongSelf = self else {
+                        return
+                    }
+                    if strongSelf.sections.isEmpty {
+                        self?.collectionView.backgroundView = self?.noDataLabel
+                    }
+                }
             case .success(let model):
                 albums = model
             }
         }
         
-        APICaller.shared.getPopularTracks(of: artist) { result in
+        APICaller.shared.getPopularTracks(of: artist) { [weak self] result in
             defer {
                 group.leave()
             }
             switch result {
             case .failure(let error):
-                print(error.localizedDescription)
+                DispatchQueue.main.async { [weak self] in
+                    self?.dismiss(animated: true) {
+                        let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                        self?.present(alert, animated: true)
+                    }
+                    self?.collectionView.refreshControl?.endRefreshing()
+                    guard let strongSelf = self else {
+                        return
+                    }
+                    if strongSelf.sections.isEmpty {
+                        self?.collectionView.backgroundView = self?.noDataLabel
+                    }
+                }
             case .success(let model):
                 popularTracks = model
             }
         }
         
-        APICaller.shared.getRelatedArtists(to: artist) { result in
+        APICaller.shared.getRelatedArtists(to: artist) { [weak self] result in
             defer {
                 group.leave()
             }
             switch result {
             case .failure(let error):
-                print(error.localizedDescription)
+                DispatchQueue.main.async { [weak self] in
+                    self?.dismiss(animated: true) {
+                        let alert = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                        self?.present(alert, animated: true)
+                    }
+                    self?.collectionView.refreshControl?.endRefreshing()
+                    guard let strongSelf = self else {
+                        return
+                    }
+                    if strongSelf.sections.isEmpty {
+                        self?.collectionView.backgroundView = self?.noDataLabel
+                    }
+                }
             case .success(let model):
                 relatedArtists = model
             }
         }
         
         group.notify(queue: .main) { [weak self] in
+            self?.collectionView.refreshControl?.endRefreshing()
             guard let relatedArtists = relatedArtists?.artists, let popularTracks = popularTracks?.tracks, let albums = albums?.items else {
+                DispatchQueue.main.async { [weak self] in
+                    self?.dismiss(animated: true) {
+                        let alert = UIAlertController(title: "Error", message: "Failed To Get Data", preferredStyle: .alert)
+                        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+                        self?.present(alert, animated: true)
+                    }
+                    guard let strongSelf = self else {
+                        return
+                    }
+                    if strongSelf.sections.isEmpty {
+                        self?.collectionView.backgroundView = self?.noDataLabel
+                    }
+                }
                 return
             }
+            self?.dismiss(animated: true, completion: { [weak self] in
+                self?.spinner.stopAnimating()
+                isDismissed = true
+            })
             self?.configureModels(artists: relatedArtists, tracks: popularTracks, albums: albums)
         }
     }
@@ -192,6 +293,7 @@ class ArtistViewController: UIViewController {
         self.artists = artists
         self.tracks = tracks
         self.albums = albums
+        sections.removeAll()
         sections.append(ArtistSectionType.albums(albums: albums.compactMap({ album in
             return FeaturedPlaylistCellViewModel(name: album.name, artworkURL: URL(string: album.images.first?.url ?? ""), creatorName: album.artists.first?.name ?? "-")
         })))
@@ -201,7 +303,7 @@ class ArtistViewController: UIViewController {
         sections.append(ArtistSectionType.relatedArtists(artists: artists.compactMap({
             return ArtistCollectionViewModel(name: $0.name, artworkURL: URL(string: $0.images?.first?.url ?? ""))
         })))
-        
+        collectionView.backgroundView = nil
         collectionView.reloadData()
     }
 }
@@ -268,6 +370,7 @@ extension ArtistViewController: UICollectionViewDelegate, UICollectionViewDataSo
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
+        HapticsManager.shared.vibrateForSelection()
         let section = sections[indexPath.section]
         switch section {
         case .albums:

@@ -30,7 +30,7 @@ class SearchResultsViewController: UIViewController, UITableViewDelegate, UITabl
         tableView.isHidden = true
         return tableView
     }()
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .clear
